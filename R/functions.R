@@ -1,3 +1,5 @@
+#' all_scans_report
+#' @export
 all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    sink(file = paste0(directory, '/', plot_name,"/5_ALL_PLOT_REPORT.txt"))
 
@@ -133,6 +135,8 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
 
 }
 
+#' bilinear_interpolation
+#' @export
 bilinear_interpolation = function(coord, from_corner_coord, to_corner_coord, ordered_corner = F) {
 
    # Parameters verification
@@ -189,6 +193,8 @@ bilinear_interpolation = function(coord, from_corner_coord, to_corner_coord, ord
    return(apply_bilinear_interpolation(x=coord[,1],y=coord[,2],to_corner_coord_colnames=colnames(to_corner_coord)[1:2]))
 }
 
+#' extract_jalons
+#' @export
 extract_jalons <- function(coordinates, type = 1){
 
    longlat = coordinates[, c("typevalue_ddlon", "typevalue_ddlat")]
@@ -423,6 +429,8 @@ extract_jalons <- function(coordinates, type = 1){
    return(subplot)
 }
 
+#' Field_comparison
+#' @export
 Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
 
 
@@ -507,6 +515,8 @@ Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
 
 }
 
+#' files_summary
+#' @export
 files_summary <- function(root_in, export = FALSE, directory = NULL, plot_name = NULL){
 
 
@@ -599,6 +609,8 @@ files_summary <- function(root_in, export = FALSE, directory = NULL, plot_name =
 
 }
 
+#' procrust
+#' @export
 procrust <- function(X, Y) {
    xmean <- colMeans(X)
    ymean <- colMeans(Y)
@@ -615,7 +627,8 @@ procrust <- function(X, Y) {
    return(list(rotation = A, translation = b))
 }
 
-
+#' procrust
+#' @export
 latlong2UTM <- function (coord)
 {
    coord <- data.table(coord, check.names = TRUE)
@@ -637,7 +650,8 @@ latlong2UTM <- function (coord)
    return(coord)
 }
 
-
+#' import_plotdata
+#' @export
 import_plotdata <- function(method,plot_name){
 
    if(method == 'plotsdatabase') {
@@ -655,7 +669,8 @@ import_plotdata <- function(method,plot_name){
 
 }
 
-
+#' plot_alltrees
+#' @export
 plot_alltrees <- function(
       Fieldplot_BDD_full,
       all,
@@ -761,7 +776,8 @@ plot_alltrees <- function(
 
    }
 
-
+#' reproj_20_20
+#' @export
 reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
    dir.create(paste0(directory,'/',plot_name,"/20_20_PROJECTION"))
@@ -856,6 +872,8 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
    return(all)
 }
 
+#' save_gpkg
+#' @export
 save_gpkg <-
 
    function(all, crs, sub_plot, directory, plot_name){
@@ -876,7 +894,8 @@ save_gpkg <-
 
    }
 
-
+#' XY_computation
+#' @export
 XY_computation <-
 
    function(
@@ -1320,7 +1339,8 @@ XY_computation <-
 
    }
 
-
+#' xy_20_100
+#' @export
 xy_20_100 = function(id = NULL,x = NULL, y = NULL, subplot = NULL, reverse = FALSE){
 
    if(reverse){
