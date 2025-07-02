@@ -111,6 +111,9 @@ ui <- fluidPage(
 
                      ),
                      tabPanel('XY reprojetés', hr(),
+                              DTOutput("table1"),
+                              DTOutput("table2"),
+
                               "✅  Les IDs dupliqués proches les uns des autres",  br(),
                               "✅  Les arbres OUT qui sont des recrus se trouvant effectivement dans le bon quadrat",  br(),
                               "✅  Les arbres ADJ qui sont proches du layon les séparant de leur quadrat",  br(),
@@ -499,6 +502,20 @@ server <- function(input, output, session) {
       )
 
       all_xy(XY_computation)
+
+      # MODIF
+
+      # Affichage de la table modifiable
+      output$table1 <- renderDT({
+         datatable(all_xy(), options = list(pageLength = 50), rownames = FALSE)
+      }, server = TRUE)
+
+      # Affichage de la table modifiable
+      output$table2 <- renderDT({
+         datatable(subplot(), options = list(pageLength = 50), rownames = FALSE)
+      }, server = TRUE)
+
+      # MODIF
 
       all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
 
