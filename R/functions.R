@@ -858,7 +858,7 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
    for (i in 1:length(unique(all$sousplot))){
 
 
-      tmp <- all %>% filter(sousplot == unique(all$sousplot)[i])
+      tmp <- all %>% dplyr::filter(sousplot == unique(all$sousplot)[i])
 
       my_plot <- ggplot2::ggplot(tmp) +
          ggrepel::geom_label_repel(ggplot2::aes(label = id,x=TRUE_X_20, y=TRUE_Y_20, col = where, fill = what), size = 5) +
