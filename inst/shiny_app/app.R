@@ -111,8 +111,8 @@ ui <- fluidPage(
 
                      ),
                      tabPanel('XY reprojetés', hr(),
-                              DTOutput("table1"),
-                              DTOutput("table2"),
+                              DT::dataTableOutput("table1"),
+                              DT::dataTableOutput("table2"),
 
                               "✅  Les IDs dupliqués proches les uns des autres",  br(),
                               "✅  Les arbres OUT qui sont des recrus se trouvant effectivement dans le bon quadrat",  br(),
@@ -505,153 +505,153 @@ server <- function(input, output, session) {
 
       # MODIF
 
-      # Affichage de la table modifiable
       output$table1 <- renderDT({
+         req(all_xy())
          datatable(all_xy(), options = list(pageLength = 50), rownames = FALSE)
       }, server = TRUE)
 
-      # Affichage de la table modifiable
       output$table2 <- renderDT({
+         req(subplot())
          datatable(subplot(), options = list(pageLength = 50), rownames = FALSE)
       }, server = TRUE)
 
       # MODIF
 
-      all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
-
-      output$leaflet = renderLeaflet({
-
-         test = all_xy() %>% st_as_sf(coords = c("XAbs", "YAbs"), crs = input$crs, agr = "constant")
-
-
-         sfc = st_transform(test, crs = "+proj=longlat +datum=WGS84")
-
-
-         all_jalon = sfc %>% filter(what == 'jalon')
-         all_trees = sfc %>% filter(what == 'tree')
-         all_dupli = sfc %>% filter(duplicated_id == 'yes')
-         all_out = sfc %>% filter(where == 'out')
-         all_adj = sfc %>% filter(where == 'adjacent')
-
-
-         options = providerTileOptions(minzoom = 0.1, maxzoom = 10)
-
-
-         map = leaflet()  %>%
-            addProviderTiles("CartoDB.Positron",
-                             options = providerTileOptions(maxNativeZoom=10,maxZoom=100)) %>%
-
-            #  addControl(html="<h1 id='zoom'>Zoom</h1>") %>%
-            #  htmlwidgets::onRender("function(el,x,data){
-            # var map=this;
-            # var evt = function(e){
-            #   $('#zoom').html(map.getZoom())
-            # };
-            # map.on('zoom', evt);
-            # }") %>%
-            addCircleMarkers(data = all_jalon, color = 'black', group = "JALONS",
-                             popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
-            addCircleMarkers(data = all_trees,
-                             color = 'green',
-                             label = ~id,
-                             group = "ARBRES",
-                             labelOptions = labelOptions(noHide = TRUE,
-                                                         textsize = "15px",
-                                                         fill = FALSE,
-                                                         textOnly = T),
-                             popup = ~htmlEscape(paste(file,id,sep = ' : ')))  %>%
-            addLayersControl(
-               overlayGroups = groups,
-               options = layersControlOptions(collapsed = FALSE)
-            )
-
-         if(nrow(all_adj) > 0){
-
-            groups = c(groups, "ARBRES ADJ")
-
-            map = map %>%
-               addCircleMarkers(data = all_adj,
-                                color = 'orange',
-                                label = ~id,
-                                group = "ARBRES ADJ",
-                                labelOptions = labelOptions(noHide = TRUE,
-                                                            textsize = "15px",
-                                                            fill = FALSE,
-                                                            textOnly = T),
-                                popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
-               addLayersControl(
-                  overlayGroups = groups,
-                  options = layersControlOptions(collapsed = FALSE)
-               )
-         }
-
-         if(nrow(all_dupli) > 0){
-
-            groups = c(groups, "ID DUPLIQUES")
-
-            map = map %>%
-               addCircleMarkers(data = all_dupli,
-                                color = 'red',
-                                label = ~id,
-                                group = "ID DUPLIQUES",
-                                labelOptions = labelOptions(noHide = TRUE,
-                                                            textsize = "15px",
-                                                            fill = FALSE,
-                                                            textOnly = T),
-                                popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
-               addLayersControl(
-                  overlayGroups = groups,
-                  options = layersControlOptions(collapsed = FALSE)
-               )
-         }
-
-         if(nrow(all_out) > 0){
-
-            groups = c(groups, "ARBRES OUT")
-
-            map = map %>%
-               addCircleMarkers(data = all_out,
-                                color = 'blue',
-                                label = ~id,
-                                group = "ARBRES OUT",
-                                labelOptions = labelOptions(noHide = TRUE,
-                                                            textsize = "15px",
-                                                            fill = FALSE,
-                                                            textOnly = T),
-                                popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
-               addLayersControl(
-                  overlayGroups = groups,
-                  options = layersControlOptions(collapsed = FALSE)
-               )
-         }
-
-         map
-
-      }
-
-      )
-
-
-      showNotification("XY calculés", type="message")
-
-
-      output$tbl_alltrees <- renderDT({
-         req(all_xy())
-         DT::datatable(all_xy() %>% select(file,id,where,TRUE_X_20,TRUE_Y_20,quadrat_mesured,quadrat_check)
-                       , editable = FALSE, options = list(pageLength = 10), rownames = FALSE)
-      }, server = TRUE)
-
-      all_trees = plot_alltrees(
-         Fieldplot_BDD_full = inventory(),
-         all    = all_xy(),
-         subplot = subplot(),
-         crs     = input$crs,
-         col     = data(col),  # ou vecteur de couleurs
-         plot_name = input$plot_name,
-         directory = input$directory
-      )
-
-      all_trees(all_trees)
+      # all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
+      #
+      # output$leaflet = renderLeaflet({
+      #
+      #    test = all_xy() %>% st_as_sf(coords = c("XAbs", "YAbs"), crs = input$crs, agr = "constant")
+      #
+      #
+      #    sfc = st_transform(test, crs = "+proj=longlat +datum=WGS84")
+      #
+      #
+      #    all_jalon = sfc %>% filter(what == 'jalon')
+      #    all_trees = sfc %>% filter(what == 'tree')
+      #    all_dupli = sfc %>% filter(duplicated_id == 'yes')
+      #    all_out = sfc %>% filter(where == 'out')
+      #    all_adj = sfc %>% filter(where == 'adjacent')
+      #
+      #
+      #    options = providerTileOptions(minzoom = 0.1, maxzoom = 10)
+      #
+      #
+      #    map = leaflet()  %>%
+      #       addProviderTiles("CartoDB.Positron",
+      #                        options = providerTileOptions(maxNativeZoom=10,maxZoom=100)) %>%
+      #
+      #       #  addControl(html="<h1 id='zoom'>Zoom</h1>") %>%
+      #       #  htmlwidgets::onRender("function(el,x,data){
+      #       # var map=this;
+      #       # var evt = function(e){
+      #       #   $('#zoom').html(map.getZoom())
+      #       # };
+      #       # map.on('zoom', evt);
+      #       # }") %>%
+      #       addCircleMarkers(data = all_jalon, color = 'black', group = "JALONS",
+      #                        popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
+      #       addCircleMarkers(data = all_trees,
+      #                        color = 'green',
+      #                        label = ~id,
+      #                        group = "ARBRES",
+      #                        labelOptions = labelOptions(noHide = TRUE,
+      #                                                    textsize = "15px",
+      #                                                    fill = FALSE,
+      #                                                    textOnly = T),
+      #                        popup = ~htmlEscape(paste(file,id,sep = ' : ')))  %>%
+      #       addLayersControl(
+      #          overlayGroups = groups,
+      #          options = layersControlOptions(collapsed = FALSE)
+      #       )
+      #
+      #    if(nrow(all_adj) > 0){
+      #
+      #       groups = c(groups, "ARBRES ADJ")
+      #
+      #       map = map %>%
+      #          addCircleMarkers(data = all_adj,
+      #                           color = 'orange',
+      #                           label = ~id,
+      #                           group = "ARBRES ADJ",
+      #                           labelOptions = labelOptions(noHide = TRUE,
+      #                                                       textsize = "15px",
+      #                                                       fill = FALSE,
+      #                                                       textOnly = T),
+      #                           popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
+      #          addLayersControl(
+      #             overlayGroups = groups,
+      #             options = layersControlOptions(collapsed = FALSE)
+      #          )
+      #    }
+      #
+      #    if(nrow(all_dupli) > 0){
+      #
+      #       groups = c(groups, "ID DUPLIQUES")
+      #
+      #       map = map %>%
+      #          addCircleMarkers(data = all_dupli,
+      #                           color = 'red',
+      #                           label = ~id,
+      #                           group = "ID DUPLIQUES",
+      #                           labelOptions = labelOptions(noHide = TRUE,
+      #                                                       textsize = "15px",
+      #                                                       fill = FALSE,
+      #                                                       textOnly = T),
+      #                           popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
+      #          addLayersControl(
+      #             overlayGroups = groups,
+      #             options = layersControlOptions(collapsed = FALSE)
+      #          )
+      #    }
+      #
+      #    if(nrow(all_out) > 0){
+      #
+      #       groups = c(groups, "ARBRES OUT")
+      #
+      #       map = map %>%
+      #          addCircleMarkers(data = all_out,
+      #                           color = 'blue',
+      #                           label = ~id,
+      #                           group = "ARBRES OUT",
+      #                           labelOptions = labelOptions(noHide = TRUE,
+      #                                                       textsize = "15px",
+      #                                                       fill = FALSE,
+      #                                                       textOnly = T),
+      #                           popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
+      #          addLayersControl(
+      #             overlayGroups = groups,
+      #             options = layersControlOptions(collapsed = FALSE)
+      #          )
+      #    }
+      #
+      #    map
+      #
+      # }
+      #
+      # )
+      #
+      #
+      # showNotification("XY calculés", type="message")
+      #
+      #
+      # output$tbl_alltrees <- renderDT({
+      #    req(all_xy())
+      #    DT::datatable(all_xy() %>% select(file,id,where,TRUE_X_20,TRUE_Y_20,quadrat_mesured,quadrat_check)
+      #                  , editable = FALSE, options = list(pageLength = 10), rownames = FALSE)
+      # }, server = TRUE)
+      #
+      # all_trees = plot_alltrees(
+      #    Fieldplot_BDD_full = inventory(),
+      #    all    = all_xy(),
+      #    subplot = subplot(),
+      #    crs     = input$crs,
+      #    col     = data(col),  # ou vecteur de couleurs
+      #    plot_name = input$plot_name,
+      #    directory = input$directory
+      # )
+      #
+      # all_trees(all_trees)
 
    })
 
