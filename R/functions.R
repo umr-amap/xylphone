@@ -1380,21 +1380,3 @@ xy_20_100 = function(id = NULL,x = NULL, y = NULL, subplot = NULL, reverse = FAL
    return(data)
 
 }
-
-col <- c(
-   "0_0" = "slateblue2",     "0_20" = "green",            "0_40" = "mediumorchid2",
-   "0_60" = "orange2",       "0_80" = "seashell2",        "20_0" = "thistle3",
-   "20_20" = "blue1",        "20_40" = "mintcream",       "20_60" = "palevioletred2",
-   "20_80" = "yellow",       "40_0" = "palevioletred1",   "40_20" = "aquamarine2",
-   "40_40" = "red3",         "40_60" = "deepskyblue",     "40_80" = "orchid2",
-   "60_0" = "darkorange3",   "60_20" = "antiquewhite1",   "60_40" = "mediumseagreen",
-   "60_60" = "papayawhip",   "60_80" = "indianred3",      "80_0" = "lightskyblue1",
-   "80_20" = "pink1",        "80_40" = "orangered3",      "80_60" = "lightblue4",
-   "80_80" = "azure", 'unknow' = 'white'
-)
-
-
-all_sbplot <- c("0_0","20_0","40_0", "60_0", "80_0","80_20","60_20","40_20","20_20" ,"0_20",
-                "0_40","20_40", "40_40", "60_40", "80_40","80_60","60_60","40_60","20_60","0_60",
-                "0_80",  "20_80","40_80", "60_80", "80_80")
-

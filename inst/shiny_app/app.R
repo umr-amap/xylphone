@@ -13,10 +13,8 @@ library(writexl)
 library(htmlwidgets)
 library(htmltools)
 
-# source ------------------------------------------------------------------
-
-
-# source("R/functions.R")
+col = xyIphone::col
+all_sbplot = xyIphone::all_sbplot
 
 
 # ui ----------------------------------------------------------------------
@@ -526,7 +524,7 @@ server <- function(input, output, session) {
             # };
             # map.on('zoom', evt);
             # }") %>%
-            addCircleMarkers(data = all_jalon, color = 'blac²k', group = "JALONS",
+            addCircleMarkers(data = all_jalon, color = 'black', group = "JALONS",
                              popup = ~htmlEscape(paste(file,id,sep = ' : '))) %>%
             addCircleMarkers(data = all_trees,
                              color = 'green',
@@ -623,7 +621,7 @@ server <- function(input, output, session) {
          all    = all_xy(),
          subplot = subplot(),
          crs     = input$crs,
-         col     = col,  # ou vecteur de couleurs
+         col     = data(col),  # ou vecteur de couleurs
          plot_name = input$plot_name,
          directory = input$directory
       )
