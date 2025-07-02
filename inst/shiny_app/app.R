@@ -503,19 +503,19 @@ server <- function(input, output, session) {
 
       all_xy(XY_computation)
 
-      # MODIF
-
-      output$table1 <- renderDT({
-         req(all_xy())
-         datatable(all_xy(), options = list(pageLength = 50), rownames = FALSE)
-      }, server = TRUE)
-
-      output$table2 <- renderDT({
-         req(subplot())
-         datatable(subplot(), options = list(pageLength = 50), rownames = FALSE)
-      }, server = TRUE)
-
-      # MODIF
+      # # MODIF
+      #
+      # output$table1 <- renderDT({
+      #    req(all_xy())
+      #    datatable(all_xy(), options = list(pageLength = 50), rownames = FALSE)
+      # }, server = TRUE)
+      #
+      # output$table2 <- renderDT({
+      #    req(subplot())
+      #    datatable(subplot(), options = list(pageLength = 50), rownames = FALSE)
+      # }, server = TRUE)
+      #
+      # # MODIF
 
       all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
 
