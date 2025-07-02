@@ -1,10 +1,11 @@
 #' all_scans_report
 #' @export
+#' @import dplyr
 all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    sink(file = paste0(directory, '/', plot_name,"/5_ALL_PLOT_REPORT.txt"))
 
    all_missing_id <- unique(Fieldplot_BDD_full$extract$ind_num_sous_plot)[!(unique(Fieldplot_BDD_full$extract$ind_num_sous_plot) %in% unique(all$id))] %>% as.numeric %>% sort()
-   aa <- all %>% filter(where == 'in') %>% .[['id']] %>% unique()
+   aa <- all %>% dplyr::filter(where == 'in') %>% .[['id']] %>% unique()
    all_missing_id_in <- unique(Fieldplot_BDD_full$extract$ind_num_sous_plot)[!(unique(Fieldplot_BDD_full$extract$ind_num_sous_plot) %in% aa)] %>% as.numeric %>% sort()
 
 
@@ -25,7 +26,7 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    print(paste('                                                                    '))
 
 
-   print(Fieldplot_BDD_full$extract %>% filter(ind_num_sous_plot %in% all_missing_id_in) %>% group_by(sous_plot_name) %>%  summarise(id = paste(ind_num_sous_plot, collapse = ', ')))
+   print(Fieldplot_BDD_full$extract %>% dplyr::filter(ind_num_sous_plot %in% all_missing_id_in) %>% dplyr::group_by(sous_plot_name) %>%  dplyr::summarise(id = paste(ind_num_sous_plot, collapse = ', ')))
 
 
    print(paste('                                                                    '))
@@ -33,8 +34,8 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    print(paste('####################################################################'))
    print(paste('                                                                    '))
 
-   adjacent_error <- all %>% filter(where == 'adjacent')
-   out_error <- all %>% filter(where == 'out')
+   adjacent_error <- all %>% dplyr::filter(where == 'adjacent')
+   out_error <- all %>% dplyr::filter(where == 'out')
 
    if(nrow(adjacent_error) > 0) {
 
@@ -61,9 +62,9 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    print(paste('                                                                    '))
 
    duplicate_id_same_file <- all %>%
-      filter(duplicated_id == 'yes' & what == 'tree') %>%
-      group_by(id) %>%
-      summarise(file = unique(file),
+      dplyr::filter(duplicated_id == 'yes' & what == 'tree') %>%
+      dplyr::group_by(id) %>%
+      dplyr::summarise(file = unique(file),
                 n = n())
 
    if (nrow(duplicate_id_same_file) > 0) {
@@ -84,10 +85,10 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    print(paste('                                                                    '))
 
    less_than_3_ref <- all %>%
-      group_by(file) %>%
+      dplyr::group_by(file) %>%
       slice(1) %>%
-      select(file, n_jalon_ref, n_tree_ref, n_tot_ref) %>%
-      filter(n_tot_ref < 3)
+      dplyr::select(file, n_jalon_ref, n_tree_ref, n_tot_ref) %>%
+      dplyr::filter(n_tot_ref < 3)
 
    if (nrow(less_than_3_ref) > 0) {
 
@@ -110,10 +111,10 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    print(paste('                                                                    '))
 
    less_than_3_jalon <- all %>%
-      group_by(file) %>%
-      slice(1) %>%
-      select(file, n_jalon_ref, n_tree_ref, n_tot_ref) %>%
-      filter(n_jalon_ref < 3)
+      dplyr::group_by(file) %>%
+      dplyr::slice(1) %>%
+      dplyr::select(file, n_jalon_ref, n_tree_ref, n_tot_ref) %>%
+      dplyr::filter(n_jalon_ref < 3)
 
    if (nrow(less_than_3_jalon) > 0) {
 
@@ -137,6 +138,7 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
 
 #' bilinear_interpolation
 #' @export
+#' @import stats data.table
 bilinear_interpolation = function(coord, from_corner_coord, to_corner_coord, ordered_corner = F) {
 
    # Parameters verification
@@ -186,7 +188,7 @@ bilinear_interpolation = function(coord, from_corner_coord, to_corner_coord, ord
          rate_A*u_A + rate_B*u_B + rate_C*u_C + rate_D*u_D,
          rate_A*v_A + rate_B*v_B + rate_C*v_C + rate_D*v_D
       )
-      setnames(interp_df, new = to_corner_coord_colnames)
+      data.table::setnames(interp_df, new = to_corner_coord_colnames)
       interp_df
    }
 
@@ -195,6 +197,7 @@ bilinear_interpolation = function(coord, from_corner_coord, to_corner_coord, ord
 
 #' extract_jalons
 #' @export
+#' @import data.table sf dplyr stringr forcats
 extract_jalons <- function(coordinates, type = 1){
 
    longlat = coordinates[, c("typevalue_ddlon", "typevalue_ddlat")]
@@ -252,9 +255,9 @@ extract_jalons <- function(coordinates, type = 1){
    cornerCoord <- cornerCoord[c(1, 2, 4, 3), ]
    cornerCoord <- as.matrix(cornerCoord) %*% res$rotation
    cornerCoord <- sweep(cornerCoord, 2, res$translation, FUN = "+")
-   p <- st_multipoint(rbind(cornerCoord, cornerCoord[1, ]))
-   ps <- st_polygon(list(p), 1)
-   sps <- st_sfc(list(ps))
+   p <- sf::st_multipoint(rbind(cornerCoord, cornerCoord[1, ]))
+   ps <- sf::st_polygon(list(p), 1)
+   sps <- sf::st_sfc(list(ps))
    if (length(outliers) != 0 & !rmOutliers) {
       warning("Be carefull, you may have GNSS measurement outliers. \n",
               "Removing them may improve the georeferencing of your plot (see  the rmOutliers argument).")
@@ -279,12 +282,12 @@ extract_jalons <- function(coordinates, type = 1){
    if (any(gridsize > dimX) || any(gridsize > dimY)) {
       stop("Your gridsize is larger than the X or Y dimensions")
    }
-   cornerCoord <- data.table(plot = plot, X = projCoord[, 1],
+   cornerCoord <- data.table::data.table(plot = plot, X = projCoord[, 1],
                              Y = projCoord[, 2], cornerNum = cornerNum)
-   setnames(cornerCoord, colnames(cornerCoord), c("plot", "X",
+   data.table::setnames(cornerCoord, colnames(cornerCoord), c("plot", "X",
                                                   "Y", "cornerNum"))
    cornerCoord <- cornerCoord[order(cornerNum), .SD, by = plot]
-   dimRel <- data.table(plot = unique(plot), dimX = dimX, dimY = dimY)
+   dimRel <- data.table::data.table(plot = unique(plot), dimX = dimX, dimY = dimY)
    gridFunction <- function(data, gridsize) {
       absCoordMat <- as.matrix(data[, .(X, Y)])
       plotDimX <- as.numeric(unique(data[, "dimX"]))
@@ -296,7 +299,7 @@ extract_jalons <- function(coordinates, type = 1){
                                                                                                                   2]), by = gridsize)))
       absCoord <- bilinear_interpolation(coord = gridMat,
                                          from_corner_coord = relCoordMat, to_corner_coord = absCoordMat)
-      return(data.table(XRel = gridMat[, 1], YRel = gridMat[,
+      return(data.table::data.table(XRel = gridMat[, 1], YRel = gridMat[,
                                                             2], XAbs = absCoord[, 1], YAbs = absCoord[, 2]))
    }
    cornerCoord <- cornerCoord[dimRel, on = "plot"][, gridFunction(.SD,
@@ -388,8 +391,8 @@ extract_jalons <- function(coordinates, type = 1){
                                            "100_100" = '100_100'
       )
 
-      subplot$XRel = as.numeric(str_split(as.character(subplot$jalon), pattern="_", simplify = T)[,1])
-      subplot$YRel = as.numeric(str_split(as.character(subplot$jalon), pattern="_", simplify = T)[,2])
+      subplot$XRel = as.numeric(stringr::str_split(as.character(subplot$jalon), pattern="_", simplify = T)[,1])
+      subplot$YRel = as.numeric(stringr::str_split(as.character(subplot$jalon), pattern="_", simplify = T)[,2])
 
    }
 
@@ -431,6 +434,7 @@ extract_jalons <- function(coordinates, type = 1){
 
 #' Field_comparison
 #' @export
+#' @import dplyr ggplot2 ggrepel grDevices sf
 Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
 
 
@@ -441,48 +445,48 @@ Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    if('position_x' %in% names(Fieldplot_BDD_full) | 'position_y' %in% names(Fieldplot_BDD_full)) {
 
       field_xy <- Fieldplot_BDD_full$extract %>%
-         filter((!(is.na(position_x)) & !(is.na(position_y)))) %>%
-         select(ind_num_sous_plot, position_x, position_y) %>%
-         rename(id = ind_num_sous_plot) %>%
-         mutate(id = as.character(id))
+         dplyr::filter((!(is.na(position_x)) & !(is.na(position_y)))) %>%
+         dplyr::select(ind_num_sous_plot, position_x, position_y) %>%
+         dplyr::rename(id = ind_num_sous_plot) %>%
+         dplyr::mutate(id = as.character(id))
 
-      all <- all %>% left_join(field_xy)
+      all <- all %>% dplyr::left_join(field_xy)
 
-      all_comparison <- all %>% filter((!(is.na(position_x)) & !(is.na(position_y))) | what == 'jalon')
+      all_comparison <- all %>% dplyr::filter((!(is.na(position_x)) & !(is.na(position_y))) | what == 'jalon')
 
       for (i in 1:length(unique(all_comparison$sousplot))) {
 
          tmp <- all_comparison %>%
-            group_by(id) %>%
-            arrange(match(method, c("method1", "method2")), .by_group = TRUE, across(starts_with("method2"))) %>%
-            slice(1) %>%
-            ungroup() %>%
-            filter (sousplot == unique(all_comparison$sousplot)[i])
+            dplyr::group_by(id) %>%
+            dplyr::arrange(match(method, c("method1", "method2")), .by_group = TRUE, across(starts_with("method2"))) %>%
+            dplyr::slice(1) %>%
+            dplyr::ungroup() %>%
+            dplyr::filter (sousplot == unique(all_comparison$sousplot)[i])
 
-         tmp_tree <- tmp %>% filter(what == 'tree')
-         tmp_jalon <- tmp %>% filter(what == 'jalon')
+         tmp_tree <- tmp %>% dplyr::filter(what == 'tree')
+         tmp_jalon <- tmp %>% dplyr::filter(what == 'jalon')
 
-         my_plot <- ggplot() +
+         my_plot <- ggplot2::ggplot() +
             ggrepel::geom_label_repel(data = tmp_tree, aes(label = id,x=TRUE_X, y=TRUE_Y), size = 5, fill = 'blue', col = 'black') +
             ggrepel::geom_label_repel(data = tmp_tree, aes(label = id,x=position_x, y=position_y), size = 5, fill = 'red', col = 'black') +
             ggrepel::geom_label_repel(data = tmp_jalon, aes(label = id,x=TRUE_X, y=TRUE_Y), size = 5, fill = 'green', col = 'black') +
-            theme_classic() +
-            theme(
+            ggplot2::theme_classic() +
+            ggplot2::theme(
                panel.grid.major = element_line(colour = "black"),
                panel.grid.minor  = element_line(colour = "white", linetype = "dotdash"),
                panel.background = element_rect(fill = "black")) +
-            ggtitle(
+            ggplot2::ggtitle(
                paste0('COMPARISON FIELD AND SCAN :   ', unique(tmp$sousplot)),
                subtitle = 'green : jalon,  blue : LIDAR,   red : manual')
 
-         png(paste0(directory,'/',plot_name,"/Field_scan_comparison/",'Field_scan_comparison_', str_remove(unique(tmp$file),'.csv'),'.png'), width = 600)
+         grDevices::png(paste0(directory,'/',plot_name,"/Field_scan_comparison/",'Field_scan_comparison_', str_remove(unique(tmp$file),'.csv'),'.png'), width = 600)
          print(my_plot)
-         dev.off()
+         grDevices::dev.off()
       }
 
       tmp <- all %>%
-         filter((!(is.na(position_x)) & !(is.na(position_y)))) %>%
-         filter(!is.nan(TRUE_X))
+         dplyr::filter((!(is.na(position_x)) & !(is.na(position_y)))) %>%
+         dplyr::filter(!is.nan(TRUE_X))
       x_field <- tmp %>% .[['position_x']] %>% as.numeric()
       y_field <- tmp %>% .[['position_y']] %>% as.numeric()
       x_LIDAR <- tmp %>% .[['TRUE_X']] %>% as.numeric()
@@ -491,10 +495,10 @@ Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
       coord_field <- as.matrix(cbind(x_field,y_field))
       coord_LIDAR <- as.matrix(cbind(x_LIDAR,y_LIDAR))
 
-      pt_field <-    st_cast(st_sfc(st_multipoint(coord_field)), "POINT")
-      pt_LIDAR <- st_cast(st_sfc(st_multipoint(coord_LIDAR)), "POINT")
+      pt_field <- sf::st_cast(sf::st_sfc(sf::st_multipoint(coord_field)), "POINT")
+      pt_LIDAR <- sf::st_cast(sf::st_sfc(sf::st_multipoint(coord_LIDAR)), "POINT")
 
-      distance <- st_distance(pt_field,pt_LIDAR, by_element = TRUE)
+      distance <- sf::st_distance(pt_field,pt_LIDAR, by_element = TRUE)
 
       # hist(distance, xlab = 'Distance (m)', main = plot_name)
 
@@ -502,7 +506,7 @@ Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
       hist(distance, breaks = c(0:45), xlab = 'Distance (m)', main = paste(plot_name, '  |  n = ', length(distance)))
       dev.off()
 
-      tmp_dist <- tmp %>% mutate(distance = distance) %>% select(file, id, distance)
+      tmp_dist <- tmp %>% dplyr::mutate(distance = distance) %>% dplyr::select(file, id, distance)
 
       write.xlsx(tmp_dist, file = paste0(directory,'/',plot_name,"/distance.xlsx"), append = FALSE)
 
@@ -517,6 +521,7 @@ Field_comparison <- function (Fieldplot_BDD_full, all, directory, plot_name) {
 
 #' files_summary
 #' @export
+#' @import stringr dplyr
 files_summary <- function(root_in, export = FALSE, directory = NULL, plot_name = NULL){
 
 
@@ -627,12 +632,13 @@ procrust <- function(X, Y) {
    return(list(rotation = A, translation = b))
 }
 
-#' procrust
+#' latlong2UTM
 #' @export
+#' @import data.table proj4
 latlong2UTM <- function (coord)
 {
-   coord <- data.table(coord, check.names = TRUE)
-   setnames(coord, colnames(coord), c("long", "lat"))
+   coord <- data.table::data.table(coord, check.names = TRUE)
+   data.table::setnames(coord, colnames(coord), c("long", "lat"))
    if (!requireNamespace("proj4")) {
       stop("Please install the package 'proj4'\n\n         \t\tinstall.packages('proj4').")
    }
@@ -646,7 +652,7 @@ latlong2UTM <- function (coord)
    coord[, `:=`(codeUTM, codelatlong2UTM(long, lat))]
    coord[, `:=`(c("X", "Y"), proj4::project(.(long, lat), proj = unique(.BY))),
          by = codeUTM]
-   setDF(coord)
+   data.table::setDF(coord)
    return(coord)
 }
 
@@ -671,6 +677,7 @@ import_plotdata <- function(method,plot_name){
 
 #' plot_alltrees
 #' @export
+#' @import grDevices ggplot2 dplyr sf
 plot_alltrees <- function(
       Fieldplot_BDD_full,
       all,
@@ -763,11 +770,11 @@ plot_alltrees <- function(
          ggplot2::theme_classic()
 
 
-      png(paste0(directory,'/',plot_name,'/all_projected_trees.png'), width = 600)
+      grDevices::png(paste0(directory,'/',plot_name,'/all_projected_trees.png'), width = 600)
 
       print(myplot)
 
-      dev.off()
+      grDevices::dev.off()
 
       print(paste0('PLOT SAVE IN :', directory,'/',plot_name,"/all_projected_trees.jpg"))
 
@@ -778,6 +785,7 @@ plot_alltrees <- function(
 
 #' reproj_20_20
 #' @export
+#' @import dplyr stringr ggplot2 ggrepel grDevices
 reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
    dir.create(paste0(directory,'/',plot_name,"/20_20_PROJECTION"))
@@ -785,11 +793,11 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
    for (i in 1:length(unique(all$file))) {
 
-      tmp <- all %>% filter(file == unique(all$file)[i])
-      jalon_ref <- subplot %>% filter(sousplot == unique(tmp$sousplot))
+      tmp <- all %>% dplyr::filter(file == unique(all$file)[i])
+      jalon_ref <- subplot %>% dplyr::filter(sousplot == unique(tmp$sousplot))
       jalon_ref <- jalon_ref[as.character(jalon_ref$jalon) %in% tmp$id,]
 
-      jalon_ref <-jalon_ref %>% left_join(tmp %>% filter(what == 'jalon' & where == 'in' ) %>% select(-c("XAbs", "YAbs")), by = join_by(jalon == id))
+      jalon_ref <-jalon_ref %>% dplyr::left_join(tmp %>% dplyr::filter(what == 'jalon' & where == 'in' ) %>% dplyr::select(-c("XAbs", "YAbs")), by = dplyr::join_by(jalon == id))
 
       res <-procrust((jalon_ref[,c("XRel", "YRel")]), jalon_ref[,c("XAbs", "YAbs")])
 
@@ -810,17 +818,17 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
    all <- do.call("rbind", list_of_objects)
 
-   all$quadrat_x <- as.numeric(str_split(all$sousplot, '_', simplify = TRUE)[,1])
-   all$quadrat_y <- as.numeric(str_split(all$sousplot, '_', simplify = TRUE)[,2])
+   all$quadrat_x <- as.numeric(stringr::str_split(all$sousplot, '_', simplify = TRUE)[,1])
+   all$quadrat_y <- as.numeric(stringr::str_split(all$sousplot, '_', simplify = TRUE)[,2])
 
    all <- all %>%
 
-      mutate(
+      dplyr::mutate(
          TRUE_X_20 = TRUE_X - quadrat_x,
          TRUE_Y_20 = TRUE_Y - quadrat_y) %>%
 
-      mutate(
-         quadrat_x_mesured = case_when(
+      dplyr::mutate(
+         quadrat_x_mesured = dplyr::case_when(
             TRUE_X < 20 ~ 0,
             TRUE_X > 20 & TRUE_X < 40 ~ 20,
             TRUE_X > 40 & TRUE_X < 60 ~ 40,
@@ -829,7 +837,7 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
          ),
 
-         quadrat_y_mesured = case_when(
+         quadrat_y_mesured = dplyr::case_when(
             TRUE_Y < 20 ~ 0,
             TRUE_Y > 20 & TRUE_Y < 40 ~ 20,
             TRUE_Y > 40 & TRUE_Y < 60 ~ 40,
@@ -840,33 +848,33 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
          quadrat_mesured = paste(quadrat_x_mesured,quadrat_y_mesured,sep = '_'),
 
-         quadrat_check = case_when(
+         quadrat_check = dplyr::case_when(
             quadrat_mesured == sousplot & what != 'jalon' ~ TRUE,
             quadrat_mesured != sousplot & what != 'jalon' ~ FALSE,
             TRUE ~ NA
          )) %>%
-      select(-c(quadrat_x_mesured,quadrat_y_mesured))
+      dplyr::select(-c(quadrat_x_mesured,quadrat_y_mesured))
 
    for (i in 1:length(unique(all$sousplot))){
 
 
       tmp <- all %>% filter(sousplot == unique(all$sousplot)[i])
 
-      my_plot <- ggplot(tmp) +
-         ggrepel::geom_label_repel(aes(label = id,x=TRUE_X_20, y=TRUE_Y_20, col = where, fill = what), size = 5) +
-         scale_color_manual(values = c('in' = 'black', 'out' = 'red', 'adjacent' = 'orange')) +
-         scale_fill_manual(values = c('tree' = 'lightgreen', 'jalon' = 'white')) +
-         ggtitle(unique(tmp$sousplot)) +
-         theme_classic() +
-         theme(
+      my_plot <- ggplot2::ggplot(tmp) +
+         ggrepel::geom_label_repel(ggplot2::aes(label = id,x=TRUE_X_20, y=TRUE_Y_20, col = where, fill = what), size = 5) +
+         ggplot2::scale_color_manual(values = c('in' = 'black', 'out' = 'red', 'adjacent' = 'orange')) +
+         ggplot2::scale_fill_manual(values = c('tree' = 'lightgreen', 'jalon' = 'white')) +
+         ggplot2::ggtitle(unique(tmp$sousplot)) +
+         ggplot2::theme_classic() +
+         ggplot2::theme(
             panel.grid.major = element_line(colour = "black"),
             panel.grid.minor  = element_line(colour = "white", linetype = "dotdash"),
             panel.background = element_rect(fill = "black")) +
-         ggtitle(paste0('REPROJECTION FOR THE SUBPLOT :   ', unique(tmp$sousplot)))
+         ggplot2::ggtitle(paste0('REPROJECTION FOR THE SUBPLOT :   ', unique(tmp$sousplot)))
 
-      png(paste0(directory,'/',plot_name,"/20_20_PROJECTION/",'20_20_PROJECTION_', str_remove(unique(tmp$file),'.csv'),'.png'), width = 600)
+      grDevices::png(paste0(directory,'/',plot_name,"/20_20_PROJECTION/",'20_20_PROJECTION_', str_remove(unique(tmp$file),'.csv'),'.png'), width = 600)
       print(my_plot)
-      dev.off()
+      grDevices::dev.off()
    }
 
    return(all)
@@ -874,6 +882,7 @@ reproj_20_20 <- function (all, subplot, directory, plot_name) {
 
 #' save_gpkg
 #' @export
+#' @import dplyr sf
 save_gpkg <-
 
    function(all, crs, sub_plot, directory, plot_name){
@@ -882,8 +891,8 @@ save_gpkg <-
          dplyr::filter(what == 'tree') %>%
          dplyr::mutate(id = as.numeric(id)) %>%
          dplyr::group_by(id) %>%
-         arrange(match(method, c("jalon", "trees")), .by_group = TRUE, dplyr::across(dplyr::starts_with("trees"))) %>%
-         slice(1)
+         dplyr::arrange(match(method, c("jalon", "trees")), .by_group = TRUE, dplyr::across(dplyr::starts_with("trees"))) %>%
+         dplyr::slice(1)
 
       all_sf = sf::st_as_sf(as.data.frame(all), coords = c("XAbs", "YAbs"), crs = crs, agr = "constant")
       unique_id_sf = sf::st_as_sf(as.data.frame(unique_id), coords = c("XAbs", "YAbs"), crs = crs, agr = "constant")
@@ -896,6 +905,7 @@ save_gpkg <-
 
 #' XY_computation
 #' @export
+#' @import dplyr stringr ggplot2 grDevices BIOMASS writexl
 XY_computation <-
 
    function(
@@ -907,8 +917,8 @@ XY_computation <-
       directory){
 
 
-      files_Summary_jalon <- files_Summary %>% filter(nb_jalon > 2)
-      files_Summary_trees <- files_Summary %>% filter(nb_jalon < 3)
+      files_Summary_jalon <- files_Summary %>% dplyr::filter(nb_jalon > 2)
+      files_Summary_trees <- files_Summary %>% dplyr::filter(nb_jalon < 3)
 
       if(nrow(files_Summary_jalon) > 0 ){
          dir.create(file.path(directory,plot_name,"xy_rawdata_method1"))
@@ -924,14 +934,14 @@ XY_computation <-
             if(file_info$scan_number == '' | is.na(file_info$scan_number)){
 
                pattern = paste0('_',sousplot,'$')
-               file = raw_files_path[grep(pattern, str_remove(raw_files_path,'.csv'))]
+               file = raw_files_path[grep(pattern, stringr::str_remove(raw_files_path,'.csv'))]
 
                tmp <- read.csv(paste0(directory,'/',plot_name,'/1_rawData/',file))
 
             }else{
 
                pattern = paste0('_',sousplot,'_',file_info$scan_number,'$')
-               file = raw_files_path[grep(pattern, str_remove(raw_files_path,'.csv'))]
+               file = raw_files_path[grep(pattern, stringr::str_remove(raw_files_path,'.csv'))]
 
                tmp <- read.csv(paste0(directory,'/',plot_name,'/1_rawData/',file))
             }
@@ -948,7 +958,7 @@ XY_computation <-
 
                )%>%
 
-               select (file, sousplot, what, id, where, X_lidar, Y_lidar, duplicated_id)
+               dplyr::select (file, sousplot, what, id, where, X_lidar, Y_lidar, duplicated_id)
 
             jalon_ref <-
                dplyr::as_tibble(subplot) %>%
@@ -1090,24 +1100,24 @@ XY_computation <-
 
             # Extract jalons and subplots informations --------------------------------
 
-            x_min <- as.numeric(str_split(sousplot, '_') [[1]] [1])
-            x_max <- as.numeric(str_split(sousplot, '_') [[1]] [1]) + 20
-            y_min <- as.numeric(str_split(sousplot, '_') [[1]] [2])
-            y_max <- as.numeric(str_split(sousplot, '_') [[1]] [2]) + 20
+            x_min <- as.numeric(stringr::str_split(sousplot, '_') [[1]] [1])
+            x_max <- as.numeric(stringr::str_split(sousplot, '_') [[1]] [1]) + 20
+            y_min <- as.numeric(stringr::str_split(sousplot, '_') [[1]] [2])
+            y_max <- as.numeric(stringr::str_split(sousplot, '_') [[1]] [2]) + 20
 
 
             jalon_theo <-
                expand.grid(seq(x_min, x_max, 20), seq(y_min, y_max, 20)) %>%
-               mutate(jalon = paste(Var1, Var2, sep = '_')) %>%
+               dplyr::mutate(jalon = paste(Var1, Var2, sep = '_')) %>%
                .[['jalon']]
 
 
             adjacent_sousplot <-
                expand.grid(seq(x_min - 20, x_max, 20), seq(y_min - 20, y_max, 20)) %>%
-               filter(Var1 >= 0 &
+               dplyr::filter(Var1 >= 0 &
                          Var1 < 100 & Var2 >= 0 & Var2 < 100) %>%
-               mutate(subplot = paste(Var1, Var2, sep = '_')) %>%
-               filter(subplot != sousplot) %>% .[['subplot']]
+               dplyr::mutate(subplot = paste(Var1, Var2, sep = '_')) %>%
+               dplyr::filter(subplot != sousplot) %>% .[['subplot']]
 
 
 
@@ -1131,14 +1141,14 @@ XY_computation <-
             if(file_info$scan_number == '' | is.na(file_info$scan_number)){
 
                pattern = paste0('_',sousplot,'$')
-               file = raw_files_path[grep(pattern, str_remove(raw_files_path,'.csv'))]
+               file = raw_files_path[grep(pattern, stringr::str_remove(raw_files_path,'.csv'))]
 
                tmp <- read.csv(paste0(directory,'/',plot_name,'/1_rawData/',file))
 
             }else{
 
                pattern = paste0('_',sousplot,'_',file_info$scan_number,'$')
-               file = raw_files_path[grep(pattern, str_remove(raw_files_path,'.csv'))]
+               file = raw_files_path[grep(pattern, stringr::str_remove(raw_files_path,'.csv'))]
 
                tmp <- read.csv(paste0(directory,'/',plot_name,'/1_rawData/',file))
             }
@@ -1154,7 +1164,7 @@ XY_computation <-
                   sousplot = sousplot,
                )%>%
 
-               select (file, sousplot, what, id, where, X_lidar, Y_lidar, duplicated_id)
+               dplyr::select (file, sousplot, what, id, where, X_lidar, Y_lidar, duplicated_id)
 
 
             dup.id <-
@@ -1332,21 +1342,22 @@ XY_computation <-
          all %>%
          dplyr::filter(duplicated(id)) %>% .[['id']]
 
-      all = all %>% mutate(duplicated_id = if_else(id %in% dup.id & what == 'tree', 'yes','no'))
+      all = all %>% dplyr::mutate(duplicated_id = dplyr::if_else(id %in% dup.id & what == 'tree', 'yes','no'))
 
-      write_xlsx(all,path = paste0(directory,'/',plot_name,'/','all_reprojection.xlsx'))
+      writexl::write_xlsx(all,path = paste0(directory,'/',plot_name,'/','all_reprojection.xlsx'))
       return(all)
 
    }
 
 #' xy_20_100
 #' @export
+#' @import stringr
 xy_20_100 = function(id = NULL,x = NULL, y = NULL, subplot = NULL, reverse = FALSE){
 
    if(reverse){
 
-      subplot_x = str_split(subplot, '_', simplify = T)[,1] %>% as.numeric()
-      subplot_y = str_split(subplot, '_', simplify = T)[,2] %>% as.numeric()
+      subplot_x = stringr::str_split(subplot, '_', simplify = T)[,1] %>% as.numeric()
+      subplot_y = stringr::str_split(subplot, '_', simplify = T)[,2] %>% as.numeric()
 
       x = x - subplot_x
       y = y - subplot_y
@@ -1362,8 +1373,8 @@ xy_20_100 = function(id = NULL,x = NULL, y = NULL, subplot = NULL, reverse = FAL
 
    if(!reverse){
 
-      subplot_x = str_split(subplot, '_', simplify = T)[,1] %>% as.numeric()
-      subplot_y = str_split(subplot, '_', simplify = T)[,2] %>% as.numeric()
+      subplot_x = stringr::str_split(subplot, '_', simplify = T)[,1] %>% as.numeric()
+      subplot_y = stringr::str_split(subplot, '_', simplify = T)[,2] %>% as.numeric()
 
       x = x + subplot_x
       y = y + subplot_y

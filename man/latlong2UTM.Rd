@@ -2,10 +2,10 @@
 % Please edit documentation in R/functions.R
 \name{latlong2UTM}
 \alias{latlong2UTM}
-\title{procrust}
+\title{latlong2UTM}
 \usage{
 latlong2UTM(coord)
 }
 \description{
-procrust
+latlong2UTM
 }

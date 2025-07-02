@@ -3,6 +3,7 @@
 #' Cette fonction lance l'application Shiny.
 #'
 #' @export
+#' @import shiny htmltools htmlwidgets leafem leaflet mapview DT
 shiny_app <- function() {
    appDir <- system.file("shiny_app", package = "xyIphone")
    if (appDir == "") {
