@@ -646,7 +646,7 @@ server <- function(input, output, session) {
          all    = all_xy(),
          subplot = subplot(),
          crs     = input$crs,
-         col     = data(col),  # ou vecteur de couleurs
+         col     = col,  # ou vecteur de couleurs
          plot_name = input$plot_name,
          directory = input$directory
       )
