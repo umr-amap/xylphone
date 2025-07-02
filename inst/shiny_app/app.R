@@ -517,7 +517,7 @@ server <- function(input, output, session) {
 
       # MODIF
 
-      # all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
+      all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
       #
       # output$leaflet = renderLeaflet({
       #
