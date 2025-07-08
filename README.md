@@ -1,26 +1,23 @@
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
 # xyIphone
 
-<!-- badges: start -->
-<!-- badges: end -->
+## Documentation
 
-The goal of xyIphone is to ...
+<https://link.excalidraw.com/readonly/6mjto5emwtVyQGGqFuto>
 
 ## Installation
 
-You can install the development version of xyIphone from [GitHub](https://github.com/) with:
-
 ``` r
-# install.packages("pak")
-pak::pak("hugolblc/xyIphone")
+install.packages("devtools")
+library(devtools)
+install_github("https://github.com/umr-amap/xyIphone.git")```
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
-
 ``` r
 library(xyIphone)
-## basic example code
+start_shiny_xy()
 ```
-

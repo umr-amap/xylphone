@@ -21,15 +21,15 @@ https://link.excalidraw.com/readonly/6mjto5emwtVyQGGqFuto
 
 ## Installation
 
-```{r example}
+``` r
 install.packages("devtools")
 library(devtools)
-install_github("https://github.com/umr-amap/canObsR.git")
+install_github("https://github.com/umr-amap/xyIphone.git")```
 ```
 
 ## Example
 
-```{r example}
+``` r
 library(xyIphone)
 start_shiny_xy()
 ```
