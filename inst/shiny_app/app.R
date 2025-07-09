@@ -36,20 +36,20 @@ ui <- fluidPage(
 
          verbatimTextOutput("logs"),
          hr(),
-         textInput("root_in", "Répertoire des scans", value = "D:/VIA/scan_IPhone/mbalmayo004"),
-         textInput("directory", "Répertoire de sortie", value = "D:/VIA/scan_IPhone/outputs"),
+         textInput("root_in", "Dossier des fichiers scans", value = "...exemple/scan_IPhone/mbalmayo004"),
+         textInput("directory", "Dossier de sauvegarde des fichiers générés", value = "...exemple/scan_IPhone/outputs"),
          fluidRow(
             column(6, textInput("plot_name", "Nom de la parcelle", value = "mbalmayo004")),
-            column(6, textInput("crs", "CRS (ex. 'EPSG:32632')", value = "EPSG:32632"))
+            column(6, textInput("crs", "CRS (ex. 'EPSG:32632' pour Mbalmayo)", value = "EPSG:32632"))
          ),
-         fileInput("inventory", "Importer les données d'inventaire (.rds ou .RData)", accept = c(".rds", ".RData")),
+         fileInput("inventory", "Importer les données d'inventaire (.rds)", accept = c(".rds", ".RData")),
          hr(),
          actionButton("btn_files", "1 – Vérifier noms de fichiers"),br(),
          actionButton("btn_expRawdata", "2 – Exporter les données brutes"),br(),
-         actionButton("btn_extract", "2 – Extraire jalons"),br(),
-         actionButton("btn_xy", "3 – Calculs XY"),br(),
+         actionButton("btn_extract", "3 – Extraire jalons"),br(),
+         actionButton("btn_xy", "4 – Calculs XY"),br(),
          actionButton("btn_report", "5 – Rapport scans"),br(),
-         actionButton("btn_export", "7 – Exporter GPkg & Excel")
+         actionButton("btn_export", "6 – Exporter GPkg & Excel")
       ),
 
       mainPanel(
@@ -127,8 +127,7 @@ ui <- fluidPage(
                               hr(),
                               DT::dataTableOutput("tbl_alltrees")),
 
-                     tabPanel("Rapport texte",        verbatimTextOutput("txt_report")),
-                     tabPanel("Distance reprojection", plotOutput("hist_dist", height = 300))
+                     tabPanel("Rapport texte",        verbatimTextOutput("txt_report"))
          )
       )
    )
