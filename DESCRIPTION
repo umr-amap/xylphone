@@ -15,5 +15,22 @@ Depends:
     R (>= 3.5)
 LazyData: true
 Imports: 
+    BIOMASS,
+    data.table,
     dplyr,
-    shiny
+    DT,
+    forcats,
+    ggplot2,
+    ggrepel,
+    grDevices,
+    htmltools,
+    htmlwidgets,
+    leafem,
+    leaflet,
+    mapview,
+    proj4,
+    sf,
+    shiny,
+    stats,
+    stringr,
+    writexl

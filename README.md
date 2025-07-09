@@ -12,12 +12,12 @@
 ``` r
 install.packages("devtools")
 library(devtools)
-install_github("https://github.com/umr-amap/xyIphone.git")
+install_github("https://github.com/hugolblc/xyIphone.git")
 ```
 
 ## Example
 
 ``` r
 library(xyIphone)
-start_shiny_xy()
+shiny_app()
 ```
