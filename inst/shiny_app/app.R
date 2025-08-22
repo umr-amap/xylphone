@@ -196,7 +196,7 @@ server <- function(input, output, session) {
          str_split(.,'_', simplify = T) %>%
          .[,c(3,4)] %>%
          as.data.frame() %>%
-         mutate(V2 = str_remove(V2, '.csv'))
+         dplyr::mutate(V2 = str_remove(V2, '.csv'))
 
       check_subplot = all_sbplot[!all_sbplot %in% paste(lidar_subplot$V1,lidar_subplot$V2, sep = '_')]
 
@@ -275,10 +275,10 @@ server <- function(input, output, session) {
 
          adjacent_sousplot <-
             expand.grid(seq(x_min - 20, x_max, 20), seq(y_min - 20, y_max, 20)) %>%
-            filter(Var1 >= 0 &
+            dplyr::filter(Var1 >= 0 &
                       Var1 < 100 & Var2 >= 0 & Var2 < 100) %>%
             mutate(subplot = paste(Var1, Var2, sep = '_')) %>%
-            filter(subplot != sousplot) %>% .[['subplot']]
+            dplyr::filter(subplot != sousplot) %>% .[['subplot']]
 
          # Extract data for the subplot --------------------------------------------
 
@@ -304,13 +304,13 @@ server <- function(input, output, session) {
          id = tmp %>% .[['id']]
 
          inv.id = inventory()$extract %>%
-            filter(ind_num_sous_plot %in% id) %>%
+            dplyr::filter(ind_num_sous_plot %in% id) %>%
             select(ind_num_sous_plot, sous_plot_name) %>%
             rename(id = ind_num_sous_plot, where = sous_plot_name) %>%
             mutate(id = as.character(id))
 
          tmp = tmp %>%
-            mutate(
+            dplyr::mutate(
                what = case_when(str_detect(id, 'jalon_') ~ 'jalon', TRUE ~ 'tree'),
                id = str_remove(id, 'jalon_'),
                duplicated_id = dplyr::case_when(id %in% dup.id ~ 'yes', TRUE ~ 'no'),
@@ -325,9 +325,9 @@ server <- function(input, output, session) {
                   TRUE ~ where
                ),
             ) %>%
-            select(what,id,everything())
+            dplyr::select(what,id,everything())
 
-         n_jal = tmp %>% filter(what == 'jalon') %>% .[['id']] %>% unique() %>% length()
+         n_jal = tmp %>% dplyr::filter(what == 'jalon') %>% .[['id']] %>% unique() %>% length()
 
          tmp$n_jal = n_jal
 
@@ -502,20 +502,6 @@ server <- function(input, output, session) {
 
       all_xy(XY_computation)
 
-      # # MODIF
-      #
-      # output$table1 <- renderDT({
-      #    req(all_xy())
-      #    datatable(all_xy(), options = list(pageLength = 50), rownames = FALSE)
-      # }, server = TRUE)
-      #
-      # output$table2 <- renderDT({
-      #    req(subplot())
-      #    datatable(subplot(), options = list(pageLength = 50), rownames = FALSE)
-      # }, server = TRUE)
-      #
-      # # MODIF
-
       all_xy(reproj_20_20(all_xy(), subplot(),input$directory, input$plot_name))
 
       output$leaflet = renderLeaflet({
@@ -526,11 +512,11 @@ server <- function(input, output, session) {
          sfc = st_transform(test, crs = "+proj=longlat +datum=WGS84")
 
 
-         all_jalon = sfc %>% filter(what == 'jalon')
-         all_trees = sfc %>% filter(what == 'tree')
-         all_dupli = sfc %>% filter(duplicated_id == 'yes')
-         all_out = sfc %>% filter(where == 'out')
-         all_adj = sfc %>% filter(where == 'adjacent')
+         all_jalon = sfc %>% dplyr::filter(what == 'jalon')
+         all_trees = sfc %>% dplyr::filter(what == 'tree')
+         all_dupli = sfc %>% dplyr::filter(duplicated_id == 'yes')
+         all_out = sfc %>% dplyr::filter(where == 'out')
+         all_adj = sfc %>% dplyr::filter(where == 'adjacent')
 
 
          options = providerTileOptions(minzoom = 0.1, maxzoom = 10)
@@ -693,10 +679,10 @@ server <- function(input, output, session) {
 
       all = all_xy() %>%
          dplyr::filter(what == 'tree') %>%
-         filter(grepl("^[0-9]+(\\.[0-9]+)?$", id)) %>%
+         dplyr::filter(grepl("^[0-9]+(\\.[0-9]+)?$", id)) %>%
          dplyr::mutate(id = as.numeric(id)) %>%
          dplyr::group_by(id) %>%
-         arrange(match(method, c("jalon", "trees")), .by_group = TRUE, dplyr::across(dplyr::starts_with("trees"))) %>%
+         dplyr::arrange(match(method, c("jalon", "trees")), .by_group = TRUE, dplyr::across(dplyr::starts_with("trees"))) %>%
          slice(1) %>%
          ungroup() %>%
          group_by(id) %>%
