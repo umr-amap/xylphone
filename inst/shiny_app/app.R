@@ -311,8 +311,20 @@ server <- function(input, output, session) {
 
          tmp = tmp %>%
             dplyr::mutate(
-               what = case_when(str_detect(id, 'jalon_') ~ 'jalon', TRUE ~ 'tree'),
-               id = str_remove(id, 'jalon_'),
+               what = case_when(
+                  str_detect(id, 'jalon_') ~ 'jalon',
+                  str_detect(id, 'Jalon_') ~ 'jalon',
+                  str_detect(id, 'jalon') ~ 'jalon',
+                  str_detect(id, 'Jalon') ~ 'jalon',
+                  TRUE ~ 'tree'
+                  ),
+               id = case_when(
+                  str_detect(id, 'jalon_') ~ str_remove(id, 'jalon_'),
+                  str_detect(id, 'Jalon_') ~ str_remove(id, 'Jalon_'),
+                  str_detect(id, 'jalon') ~ str_remove(id, 'jalon'),
+                  str_detect(id, 'Jalon') ~ str_remove(id, 'Jalon'),
+                  TRUE ~ id
+               ),
                duplicated_id = dplyr::case_when(id %in% dup.id ~ 'yes', TRUE ~ 'no'),
                where = dplyr::case_when(
                   (what == 'tree' & id %in% id_sousplot) ~ 'in',
