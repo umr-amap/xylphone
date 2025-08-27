@@ -20,6 +20,8 @@ library(htmlwidgets)
 library(htmltools)
 library(grDevices)
 library(proj4)
+library(shinyjs) # 🆕 Pour cacher/afficher les inputs
+
 
 col = xyIphone::col
 all_sbplot = xyIphone::all_sbplot
@@ -29,20 +31,42 @@ all_sbplot = xyIphone::all_sbplot
 
 
 ui <- fluidPage(
-   titlePanel("Pipeline LIDAR → Coordonnées d’arbres"),
+   useShinyjs(), # 🆕 Activer shinyjs
+   titlePanel("🌳 Pipeline LIDAR → Coordonnées d’arbres"),
+   tags$head(
 
+      tags$style(HTML("
+      #input-panel {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+      }
+     .btn { width: 100%; margin-bottom: 10px; }
+    .form-group { margin-bottom: 10px; }
+    "))
+   ),
    sidebarLayout(
       sidebarPanel(
 
          verbatimTextOutput("logs"),
          hr(),
-         textInput("root_in", "Dossier des fichiers scans", value = "...exemple/scan_IPhone/mbalmayo004"),
-         textInput("directory", "Dossier de sauvegarde des fichiers générés", value = "...exemple/scan_IPhone/outputs"),
-         fluidRow(
-            column(6, textInput("plot_name", "Nom de la parcelle", value = "mbalmayo004")),
-            column(6, textInput("crs", "CRS (ex. 'EPSG:32632' pour Mbalmayo)", value = "EPSG:32632"))
+         # 🆕 Bouton pour cacher/afficher les chemins
+         actionButton("toggle_paths", "📂 Afficher/Masquer les chemins d'accès"),
+         div(
+            id = "paths_panel", style = "display: none;", # 🆕 masqué par défaut
+
+            br(),
+            textInput("root_in", "Dossier des fichiers scans", value = "...exemple/scan_IPhone/mbalmayo004"),
+            textInput("directory", "Dossier de sauvegarde des fichiers générés", value = "...exemple/scan_IPhone/outputs"),
+            fluidRow(
+               column(6, textInput("plot_name", "Nom de la parcelle", value = "mbalmayo004")),
+               column(6, textInput("crs", "CRS (ex. 'EPSG:32632' pour Mbalmayo)", value = "EPSG:32632"))
+            ),
+            fileInput("inventory", "Importer les données d'inventaire (.rds)", accept = c(".rds", ".RData")),
          ),
-         fileInput("inventory", "Importer les données d'inventaire (.rds)", accept = c(".rds", ".RData")),
+
          hr(),
          actionButton("btn_files", "1 – Vérifier noms de fichiers"),br(),
          actionButton("btn_expRawdata", "2 – Exporter les données brutes"),br(),
@@ -139,6 +163,10 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
 
+   # 🆕 Toggle pour afficher/masquer le panneau des chemins
+   observeEvent(input$toggle_paths, {
+      toggle(id = "paths_panel", anim = TRUE, animType = "slide", asis = TRUE)
+   })
 
    # stocker les données -----------------------------------------------------
 
