@@ -961,7 +961,7 @@ XY_computation <-
                dplyr::select (file, sousplot, what, id, where, X_lidar, Y_lidar, duplicated_id)
 
             check_jalon <- tmp %>%
-               dplyr::filter(jalon %in% (LIDAR_sousplot %>% dplyr::filter(what == 'jalon' ))) %>% .[['where']]
+               dplyr::filter(what == 'jalon') %>% .[['where']]
             check_jalon = (length(check_jalon[check_jalon == 'in']) > 2)
 
             if(check_jalon){
