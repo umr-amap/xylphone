@@ -98,7 +98,8 @@ ui <- fluidPage(
                                  column(4,actionButton("next_image", "Image suivante →"))
                               ),
 
-                              actionButton("clean_out", "In"),
+                              actionButton("clean_in", "In"),
+                              actionButton("clean_out", "Out"),
 
                               actionButton("save", "Enregistrer les modifications"),
 
@@ -451,9 +452,18 @@ server <- function(input, output, session) {
    })
 
    # Clean out
-   observeEvent(input$clean_out, {
+   observeEvent(input$clean_in, {
       req(data())
       tmp = data() %>% mutate(where = 'in')
+      data(tmp)
+      write.csv(data(), paste0(input$directory,'/',input$plot_name,'/1_rawData/',input$subplot_file), row.names = FALSE)
+      output$save_status <- renderText("Modifications enregistrées avec succès.")
+   })
+
+   # Clean out
+   observeEvent(input$clean_out, {
+      req(data())
+      tmp = data() %>% mutate(where = 'out')
       data(tmp)
       write.csv(data(), paste0(input$directory,'/',input$plot_name,'/1_rawData/',input$subplot_file), row.names = FALSE)
       output$save_status <- renderText("Modifications enregistrées avec succès.")
