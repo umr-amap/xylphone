@@ -960,6 +960,12 @@ XY_computation <-
 
                dplyr::select (file, sousplot, what, id, where, X_lidar, Y_lidar, duplicated_id)
 
+            check_jalon <- tmp %>%
+               dplyr::filter(jalon %in% (LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ))) %>%
+               nrow()
+
+            if(check < 3 ){ return(NULL)}
+
             jalon_ref <-
                dplyr::as_tibble(subplot) %>%
                dplyr::filter(jalon %in% (LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ) %>%
