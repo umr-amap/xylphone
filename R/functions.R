@@ -964,127 +964,130 @@ XY_computation <-
                dplyr::filter(jalon %in% (LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ))) %>%
                nrow()
 
-            if(check < 3 ){ return(NULL)}
+            if(check > 2 ){
 
-            jalon_ref <-
-               dplyr::as_tibble(subplot) %>%
-               dplyr::filter(jalon %in% (LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ) %>%
-                                            .[['id']]) ) %>%
-               dplyr::select(jalon, XAbs,YAbs) %>%
-               dplyr::group_by(jalon) %>%
-               dplyr::slice(1) %>%
-               dplyr::ungroup()
-
-
-            jalon_ref <-
-               jalon_ref %>%
-               dplyr::left_join(LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ), by = join_by(jalon == id))
+               jalon_ref <-
+                  dplyr::as_tibble(subplot) %>%
+                  dplyr::filter(jalon %in% (LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ) %>%
+                                               .[['id']]) ) %>%
+                  dplyr::select(jalon, XAbs,YAbs) %>%
+                  dplyr::group_by(jalon) %>%
+                  dplyr::slice(1) %>%
+                  dplyr::ungroup()
 
 
-            # Plot title definitiuon --------------------------------------------------
+               jalon_ref <-
+                  jalon_ref %>%
+                  dplyr::left_join(LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'in' ), by = join_by(jalon == id))
 
 
-            if(LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'out' ) %>% nrow() != 0){
-
-               title = 'PROBLEME WITH JALON'
-
-            } else{title = ''}
+               # Plot title definitiuon --------------------------------------------------
 
 
-            if(LIDAR_sousplot %>% dplyr::filter(what == 'tree' & where %in% c('out','adjacent') ) %>% nrow() != 0 ){
+               if(LIDAR_sousplot %>% dplyr::filter(what == 'jalon' & where == 'out' ) %>% nrow() != 0){
 
-               title = paste(title, '| SOME TREES ARE OUT OF THIS SUBPLOT')} else{title = paste(title, '')
+                  title = 'PROBLEME WITH JALON'
+
+               } else{title = ''}
+
+
+               if(LIDAR_sousplot %>% dplyr::filter(what == 'tree' & where %in% c('out','adjacent') ) %>% nrow() != 0 ){
+
+                  title = paste(title, '| SOME TREES ARE OUT OF THIS SUBPLOT')} else{title = paste(title, '')
+
+                  }
+
+
+               if(TRUE %in% stringr::str_detect(LIDAR_sousplot$duplicated_id, 'yes')){
+
+                  title = paste(title, '| SOME ID ARE DUPLICATED')
+
+               } else{title = paste(title, '')}
+
+
+               if(title == '  '){title = 'NO PROBLEM DETECTED'}
+
+
+               # Plot raw data -----------------------------------------------------------
+
+               my_plot <-
+                  ggplot2::ggplot(LIDAR_sousplot, ggplot2::aes(x=X_lidar, y=Y_lidar)) +
+                  ggplot2::geom_label(ggplot2::aes(label = id, fill = what)) +
+                  ggplot2::geom_point(ggplot2::aes(y=Y_lidar+0.000008,shape = where, col = duplicated_id), size = 3) +
+                  ggplot2::scale_color_manual(values = c('yes' = 'red', 'no' = 'white')) +
+                  ggplot2::theme_classic() +
+                  ggplot2::theme(
+                     panel.grid.major = element_line(colour = "black"),
+                     panel.grid.minor  = element_line(colour = "white", linetype = "dotdash"),
+                     panel.background = element_rect(fill = "black")) +
+                  ggplot2::ggtitle(title)
+
+
+               grDevices::png(paste0(directory,'/',plot_name,"/xy_rawdata_method1", '/RAWDATA_', stringr::str_remove(unique(LIDAR_sousplot$file),'.csv'),'.png'), width = 600)
+               print(my_plot)
+               grDevices::dev.off()
+
+               # Reproject data ----------------------------------------------------------
+
+               projCoord <- BIOMASS::latlong2UTM(LIDAR_sousplot[,c('X_lidar','Y_lidar')])
+               codeUTM <- unique(projCoord[, "codeUTM"])
+               projCoord <- projCoord[, c("X", "Y")]
+               LIDAR_sousplot$X_iPhone = projCoord$X
+               LIDAR_sousplot$Y_iPhone = projCoord$Y
+
+               jalon_ref$LATiPhone = jalon_ref$LONGiPhone = jalon_ref$X_iPhone = jalon_ref$Y_iPhone = NA
+
+               for(j in 1:nrow(jalon_ref)){
+
+                  bla <- jalon_ref[j,'jalon'] %>% dplyr::pull()
+                  jalon_ref$X_iPhone[j] = LIDAR_sousplot %>% dplyr::filter(id == bla) %>% .[['X_iPhone']]
+                  jalon_ref$Y_iPhone[j] = LIDAR_sousplot %>% dplyr::filter(id == bla) %>% .[['Y_iPhone']]
 
                }
 
+               res <-procrust(jalon_ref[,c("XAbs", "YAbs")], jalon_ref[,c("X_iPhone", "Y_iPhone")])
 
-            if(TRUE %in% stringr::str_detect(LIDAR_sousplot$duplicated_id, 'yes')){
-
-               title = paste(title, '| SOME ID ARE DUPLICATED')
-
-            } else{title = paste(title, '')}
-
-
-            if(title == '  '){title = 'NO PROBLEM DETECTED'}
-
-
-            # Plot raw data -----------------------------------------------------------
-
-            my_plot <-
-               ggplot2::ggplot(LIDAR_sousplot, ggplot2::aes(x=X_lidar, y=Y_lidar)) +
-               ggplot2::geom_label(ggplot2::aes(label = id, fill = what)) +
-               ggplot2::geom_point(ggplot2::aes(y=Y_lidar+0.000008,shape = where, col = duplicated_id), size = 3) +
-               ggplot2::scale_color_manual(values = c('yes' = 'red', 'no' = 'white')) +
-               ggplot2::theme_classic() +
-               ggplot2::theme(
-                  panel.grid.major = element_line(colour = "black"),
-                  panel.grid.minor  = element_line(colour = "white", linetype = "dotdash"),
-                  panel.background = element_rect(fill = "black")) +
-               ggplot2::ggtitle(title)
-
-
-            grDevices::png(paste0(directory,'/',plot_name,"/xy_rawdata_method1", '/RAWDATA_', stringr::str_remove(unique(LIDAR_sousplot$file),'.csv'),'.png'), width = 600)
-            print(my_plot)
-            grDevices::dev.off()
-
-            # Reproject data ----------------------------------------------------------
-
-            projCoord <- BIOMASS::latlong2UTM(LIDAR_sousplot[,c('X_lidar','Y_lidar')])
-            codeUTM <- unique(projCoord[, "codeUTM"])
-            projCoord <- projCoord[, c("X", "Y")]
-            LIDAR_sousplot$X_iPhone = projCoord$X
-            LIDAR_sousplot$Y_iPhone = projCoord$Y
-
-            jalon_ref$LATiPhone = jalon_ref$LONGiPhone = jalon_ref$X_iPhone = jalon_ref$Y_iPhone = NA
-
-            for(j in 1:nrow(jalon_ref)){
-
-               bla <- jalon_ref[j,'jalon'] %>% dplyr::pull()
-               jalon_ref$X_iPhone[j] = LIDAR_sousplot %>% dplyr::filter(id == bla) %>% .[['X_iPhone']]
-               jalon_ref$Y_iPhone[j] = LIDAR_sousplot %>% dplyr::filter(id == bla) %>% .[['Y_iPhone']]
-
-            }
-
-            res <-procrust(jalon_ref[,c("XAbs", "YAbs")], jalon_ref[,c("X_iPhone", "Y_iPhone")])
-
-            coordAbs_allTrees <- as.matrix(LIDAR_sousplot[,c("X_iPhone", "Y_iPhone")]) %*% res$rotation
-            coordAbs_allTrees <- sweep(coordAbs_allTrees, 2, res$translation, FUN = "+")
-            LIDAR_sousplot$XAbs <- coordAbs_allTrees[,1]
-            LIDAR_sousplot$YAbs <- coordAbs_allTrees[,2]
+               coordAbs_allTrees <- as.matrix(LIDAR_sousplot[,c("X_iPhone", "Y_iPhone")]) %*% res$rotation
+               coordAbs_allTrees <- sweep(coordAbs_allTrees, 2, res$translation, FUN = "+")
+               LIDAR_sousplot$XAbs <- coordAbs_allTrees[,1]
+               LIDAR_sousplot$YAbs <- coordAbs_allTrees[,2]
 
 
 
-            # Plot reprojected data ---------------------------------------------------
+               # Plot reprojected data ---------------------------------------------------
 
-            my_plot <-
-               ggplot2::ggplot(LIDAR_sousplot) +
-               ggrepel::geom_label_repel(ggplot2::aes(label = id,x=XAbs, y=YAbs, col = where, fill = what), size = 5) +
-               ggplot2::scale_color_manual(values = c('in' = 'black', 'out' = 'red', 'adjacent' = 'orange')) +
-               ggplot2::scale_fill_manual(values = c('tree' = 'lightgreen', 'jalon' = 'white')) +
-               ggplot2::ggtitle(sousplot) +
-               ggplot2::theme_classic() +
-               ggplot2::theme(
-                  panel.grid.major = element_line(colour = "black"),
-                  panel.grid.minor  = element_line(colour = "white", linetype = "dotdash"),
-                  panel.background = element_rect(fill = "black")) +
-               ggplot2::ggtitle(paste0('REPROJECTION FOR THE FILE :   ', unique(LIDAR_sousplot$file)))
-
-
-            grDevices::png(paste0(directory,'/',plot_name,"/xy_reproject_method1", '/REPROJECT_', stringr::str_remove(unique(LIDAR_sousplot$file),'.csv'),'.png'), width = 600)
-            print(my_plot)
-            grDevices::dev.off()
-
-            LIDAR_sousplot <-
-               LIDAR_sousplot %>%
-               dplyr::mutate(
-                  plot = plot_name,
-                  method = 'jalon') %>%
-               dplyr::mutate(., n_jalon_ref = length(unique(jalon_ref$jalon)) ) %>%
-               dplyr::mutate(., n_tree_ref = 0 )  %>%
-               dplyr::mutate(n_tot_ref = n_jalon_ref + n_tree_ref )
+               my_plot <-
+                  ggplot2::ggplot(LIDAR_sousplot) +
+                  ggrepel::geom_label_repel(ggplot2::aes(label = id,x=XAbs, y=YAbs, col = where, fill = what), size = 5) +
+                  ggplot2::scale_color_manual(values = c('in' = 'black', 'out' = 'red', 'adjacent' = 'orange')) +
+                  ggplot2::scale_fill_manual(values = c('tree' = 'lightgreen', 'jalon' = 'white')) +
+                  ggplot2::ggtitle(sousplot) +
+                  ggplot2::theme_classic() +
+                  ggplot2::theme(
+                     panel.grid.major = element_line(colour = "black"),
+                     panel.grid.minor  = element_line(colour = "white", linetype = "dotdash"),
+                     panel.background = element_rect(fill = "black")) +
+                  ggplot2::ggtitle(paste0('REPROJECTION FOR THE FILE :   ', unique(LIDAR_sousplot$file)))
 
 
-            assign(  paste("Reproj_XY_jalon", unique(LIDAR_sousplot$file), sep = "_"), LIDAR_sousplot )
+               grDevices::png(paste0(directory,'/',plot_name,"/xy_reproject_method1", '/REPROJECT_', stringr::str_remove(unique(LIDAR_sousplot$file),'.csv'),'.png'), width = 600)
+               print(my_plot)
+               grDevices::dev.off()
+
+               LIDAR_sousplot <-
+                  LIDAR_sousplot %>%
+                  dplyr::mutate(
+                     plot = plot_name,
+                     method = 'jalon') %>%
+                  dplyr::mutate(., n_jalon_ref = length(unique(jalon_ref$jalon)) ) %>%
+                  dplyr::mutate(., n_tree_ref = 0 )  %>%
+                  dplyr::mutate(n_tot_ref = n_jalon_ref + n_tree_ref )
+
+
+               assign(  paste("Reproj_XY_jalon", unique(LIDAR_sousplot$file), sep = "_"), LIDAR_sousplot )
+               }
+
+
 
          }
 
