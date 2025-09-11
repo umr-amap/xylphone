@@ -26,7 +26,7 @@ all_scans_report <- function (Fieldplot_BDD_full, all, directory, plot_name) {
    print(paste('                                                                    '))
 
 
-   print(Fieldplot_BDD_full$extract %>% dplyr::filter(ind_num_sous_plot %in% all_missing_id_in) %>% dplyr::group_by(sous_plot_name) %>%  dplyr::summarise(id = paste(ind_num_sous_plot, collapse = ', ')))
+   print(Fieldplot_BDD_full$extract %>% dplyr::filter(ind_num_sous_plot %in% all_missing_id_in) %>% dplyr::group_by(sous_plot_name) %>%  dplyr::summarise(id = paste(ind_num_sous_plot, collapse = ', '))) %>% print(n = nrow(.))
 
 
    print(paste('                                                                    '))
