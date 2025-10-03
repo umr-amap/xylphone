@@ -12,7 +12,7 @@
 ``` r
 install.packages("devtools")
 library(devtools)
-install_github("https://github.com/hugolblc/xyIphone.git")
+install_github("https://github.com/umr-amap/xylphone")
 ```
 
 ## Example
